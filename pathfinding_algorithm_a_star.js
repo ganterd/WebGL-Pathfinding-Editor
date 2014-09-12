@@ -24,28 +24,28 @@ Pathfinding_Algorithm_A_Star.prototype.heuristic = function(p, goal)
 	return this.distance(p, goal) * 10;
 }
 
-Pathfinding_Algorithm_A_Star.prototype.init = function(finder)
+Pathfinding_Algorithm_A_Star.prototype.init = function(scene)
 {
 	this.openset = [];
-	this.openset.push(finder._pStart);
+	this.openset.push(scene._pStart);
 	
 	this.closedset = [];
 	this.g_scores = [];
 	this.f_scores = [];
 	this.camefrom = [];
-	for(var x = 0; x < finder._graph.length; ++x)
+	for(var x = 0; x < scene._graph.length; ++x)
 	{
 		var closedsetY = [];
 		var g_scoresY = [];
 		var f_scoresY = [];
 		var camefromY = [];
-		for(var y = 0; y < finder._graph[x].length; ++y)
+		for(var y = 0; y < scene._graph[x].length; ++y)
 		{
 			var closedsetZ = [];
 			var g_scoresZ = [];
 			var f_scoresZ = [];
 			var camefromZ = [];
-			for(var z = 0; z < finder._graph[x][y].length; ++z)
+			for(var z = 0; z < scene._graph[x][y].length; ++z)
 			{
 				closedsetZ.push(false);
 				g_scoresZ.push(null);
@@ -63,16 +63,16 @@ Pathfinding_Algorithm_A_Star.prototype.init = function(finder)
 		this.camefrom.push(camefromY);
 	}
 	
-	var p = finder._pStart
+	var p = scene._pStart
 	this.g_scores[p.x][p.y][p.z] = 0;
-	this.f_scores[p.x][p.y][p.z] = 0 + this.heuristic(finder._pStart, finder._pGoal);
+	this.f_scores[p.x][p.y][p.z] = 0 + this.heuristic(scene._pStart, scene._pGoal);
 }
 
-Pathfinding_Algorithm_A_Star.prototype.tick = function(finder)
+Pathfinding_Algorithm_A_Star.prototype.tick = function(scene)
 {
 	if(this.openset == null)
 	{
-		this.init(finder);
+		this.init(scene);
 	}
 	
 	if(this.openset.length == 0)
@@ -98,7 +98,7 @@ Pathfinding_Algorithm_A_Star.prototype.tick = function(finder)
 	this.openset.splice(lowestScoreIndex, 1);
 	this.closedset[p.x][p.y][p.z] = true;
 	
-	if(p.x == finder._pGoal.x && p.y == finder._pGoal.y && p.z == finder._pGoal.z)
+	if(p.x == scene._pGoal.x && p.y == scene._pGoal.y && p.z == scene._pGoal.z)
 	{
 		console.debug("A* Search: Found goal");
 		this.reconstructPath(p);
@@ -106,11 +106,11 @@ Pathfinding_Algorithm_A_Star.prototype.tick = function(finder)
 	}
 	
 	/* Get neighbors for node */
-	var neighbors = Pathfinding.neighbors(p, finder._graph);
+	var neighbors = Pathfinding.neighbors(p, scene._graph);
 	for(var i = 0; i < neighbors.length; ++i)
 	{
 		var n = neighbors[i];
-		var graphPointType = finder._graph[n.x][n.y][n.z];
+		var graphPointType = scene._graph[n.x][n.y][n.z];
 		if(this.closedset[n.x][n.y][n.z] == false)
 		{
 			var tentative_g_score = this.g_scores[p.x][p.y][p.z] + this.distance(p, n);
@@ -122,10 +122,10 @@ Pathfinding_Algorithm_A_Star.prototype.tick = function(finder)
 				if(n_g_score == null)
 					this.openset.push({x:n.x, y:n.y, z:n.z});
 				this.g_scores[n.x][n.y][n.z] = tentative_g_score;
-				this.f_scores[n.x][n.y][n.z] = tentative_g_score + this.heuristic(n, finder._pGoal);
+				this.f_scores[n.x][n.y][n.z] = tentative_g_score + this.heuristic(n, scene._pGoal);
 				
 				if(graphPointType != Pathfinding.GOAL)
-					finder._graph[n.x][n.y][n.z] = Pathfinding.CHECKED;
+					scene._graph[n.x][n.y][n.z] = Pathfinding.CHECKED;
 			}
 		}
 	}
