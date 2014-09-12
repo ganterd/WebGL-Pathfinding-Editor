@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Standard Meta -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <!-- Site Properities -->
+  <title>WebGL & Voxel Pathfinding - PatchyLogic</title>
+
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Open+Sans:300italic,400,300,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" type="text/css" href="homepage.css">
+  <link href="jquery-ui.min.css" rel="stylesheet">
+
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.js"></script>
+  <script type="text/javascript" src="jquery-ui.min.js"></script>
+  <script type="text/javascript" src="webgl-utils.js"></script>
+  <script type="text/javascript" src="gl-matrix-min.js"></script>
+  <script type="text/javascript" src="pathfinding.js"></script>
+  <script type="text/javascript" src="pathfinding_algorithm_a_star.js"></script>
+  <script type="text/javascript" src="script.js"></script>
+  <script type="text/javascript" src="ace/ace.js"></script>
+	
+	<!-- WebGL Shader Scripts -->
+	<script id="standard-shader-fs" type="x-shader/x-fragment">
+		precision mediump float;
+		
+		varying vec4 vColor;
+		
+		void main(void)
+		{
+			gl_FragColor = vColor;
+		}
+	</script>
+	<script id="standard-shader-vs" type="x-shader/x-vertex">
+		attribute vec3 aVertexPosition;
+		attribute vec4 aVertexColor;
+		
+		uniform mat4 uMVMatrix;
+		uniform mat4 uPMatrix;
+		
+		varying vec4 vColor;
+		
+		void main(void)
+		{
+			gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+			vColor = aVertexColor;
+		}
+	</script>
+	<script>
+	  $(function() {
+		var updateInfo = function(axis, value)
+		{
+			$("#size_" + axis).html(value);
+			_spaceLimits[axis] = value;
+		}
+		
+		var updateFill = function(value)
+		{
+			_spaceFillPercent = value;
+			$("#fill_percent").html(value);
+		}
+		
+		$("#size_x").html(_spaceLimits.x);
+		$("#size_y").html(_spaceLimits.y);
+		$("#size_z").html(_spaceLimits.z);
+		
+		$("#fill_percent").html(_spaceFillPercent);
+	  
+		$( "#slider_x" ).slider({ min: 1, max : 70, value: _spaceLimits.x, slide: function(event, ui){updateInfo('x', ui.value);}});
+		$( "#slider_y" ).slider({ min: 1, max : 70, value: _spaceLimits.y, slide: function(event, ui){updateInfo('y', ui.value);} });
+		$( "#slider_z" ).slider({ min: 1, max : 70, value: _spaceLimits.z, slide: function(event, ui){updateInfo('z', ui.value);} });
+		$( "#slider_fill" ).slider({ min: 1, max : 100, value: _spaceFillPercent, slide: function(event, ui){updateFill(ui.value);} });
+	  });
+	  
+	var editor;
+	var runCode = function()
+	{
+		var code = editor.getValue();
+		eval(code);
+		updateAlgorithmList();
+	}
+	
+	var updateAlgorithmList = function()
+	{
+		var list = $("#algorithm");
+		list.html("");
+		for(var alg in Pathfinding._algorithms)
+		{
+			list.append("<option>" + alg + "</options>");
+		}
+	}
+	
+	var selectAlgorithm = function()
+	{
+		var algorithmIndex = document.getElementById("algorithm").selectedIndex;
+		
+		var i = 0; 
+		for(var alg in Pathfinding._algorithms)
+		{
+			if(i++ == algorithmIndex)
+			{
+				console.debug("Setting algorithm to '" + alg + "'");
+				_currentSearchAlgorithmName = alg;
+			}
+		}
+	}
+  </script>
+	<!-- /WebGL Shader Scripts -->
+
+</head>
+<body id="home" onload="main(); updateAlgorithmList()">
+	<div id="canvaswrapper">
+		<canvas id="gl_canvas"></canvas>
+	</div>
+	<div id="rightpane">
+		<div id="spaceparams">
+			<table>
+				<tr>
+					<td width="70">X Size:</td>
+					<td width="30" id="size_x">
+						50
+					</td>
+					<td width="300">
+						<div id="slider_x" style="width: 250px; margin: 10px"></div>
+					</td>
+				</tr>
+				<tr>
+					<td width="70">Y Size:</td>
+					<td width="30" id="size_y">
+						50
+					</td>
+					<td width="300">
+						<div id="slider_y" style="width: 250px; margin: 10px"></div>
+					</td>
+				</tr>
+				<tr>
+					<td width="70">Z Size:</td>
+					<td width="30" id="size_z">
+						50
+					</td>
+					<td width="300">
+						<div id="slider_z" style="width: 250px; margin: 10px"></div>
+					</td>
+				</tr>
+				<tr>
+					<td width="200">Fill Percent:</td>
+					<td width="30" id="fill_percent">
+						5
+					</td>
+					<td width="300">
+						<div id="slider_fill" style="width: 250px; margin: 10px"></div>
+					</td>
+				</tr>
+				<tr>
+					<td width="100">Wireframe Obstacles:</td>
+					<td width="30" id="fill_percent">
+						<input id="wireframe_obstacles" type="checkbox" name="wireframe_obstacles" onclick="wireframeObstacles($('#wireframe_obstacles').prop('checked'));">
+					</td>
+					<td width="300">
+					</td>
+				</tr>
+			</table>
+			<button style="width:40%"; id="generatespace" onclick="initSpace()">Generate Space</button>
+			<button style="width:40%"; id="runscript" onclick="runCode()">Run Code</button>
+			<p>
+			Search Algorithm:
+			<select name="Algorithm" id="algorithm" style="width:80%" onchange="selectAlgorithm()">
+				<option>First option</option>
+			</select>
+			<button style="width:80%"; id="restartsearch" onclick="restartSearch()">Restart Search</button>
+			</p>
+		</div>
+		<div id="searchscripteditor">var CustomSearchAlgorithm = function(){
+	var path = null;
+};
+
+CustomSearchAlgorithm.prototype.init = function(finder)
+{  
+};
+
+CustomSearchAlgorithm.prototype.tick = function(finder)
+{
+};
+
+Pathfinding.fnAddAlgorithm('Custom', new CustomSearchAlgorithm());</div>
+		<script>
+			editor = ace.edit("searchscripteditor");
+			editor.setTheme("ace/theme/twilight");
+			editor.getSession().setMode("ace/mode/javascript");
+		</script>
+	</div>
+</body>
+
+</html>

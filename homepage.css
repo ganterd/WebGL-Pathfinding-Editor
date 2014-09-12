@@ -1,0 +1,61 @@
+/*******************************
+            Global
+*******************************/
+
+html,
+body {
+  font-size: 15px;
+  height: 100%;
+}
+
+body {
+  font-family: "Open Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  background: #FFFFFF;
+  margin: 0px;
+  padding: 0px;
+  color: #555555;
+  text-rendering: optimizeLegibility;
+  min-width: 320px;
+  overflow: hidden;
+}
+
+#gl_canvas
+{
+	position: relative; 
+	background-color: black; 
+	width: 100%; 
+	height: 100%;
+}
+
+#canvaswrapper
+{
+	float: left;
+	width: 60%;
+	height: 100%;
+}
+
+#rightpane
+{
+	float: left;
+	width: 40%;
+	height: 100%;
+	overflow: hidden;
+}
+
+#spaceparams
+{
+	float: left;
+	height: 35%;
+	width: 100%;
+	min-height: 300px;
+	padding: 20px;
+	background-color: #f8f8f8
+}
+
+#searchscripteditor
+{
+	float: left;
+	width: 100%;
+	height: 60%;
+	padding: 20px;
+}
