@@ -106,7 +106,7 @@ Pathfinding_Algorithm_A_Star.prototype.tick = function(finder)
 	}
 	
 	/* Get neighbors for node */
-	var neighbors = finder.neighbors(p, finder._graph);
+	var neighbors = Pathfinding.neighbors(p, finder._graph);
 	for(var i = 0; i < neighbors.length; ++i)
 	{
 		var n = neighbors[i];

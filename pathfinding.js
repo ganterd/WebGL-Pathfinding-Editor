@@ -90,7 +90,7 @@ Pathfinding.prototype.fnTick = function()
 {
 	if(this._currentAlgorithmFn && this._status == Pathfinding.SEARCHING)
 	{
-		this._status = this._currentAlgorithmFn.tick(this);
+		this._status = this._currentAlgorithmFn.tick({ _graph:this._graph, _pStart:this._pStart, _pGoal:this._pGoal });
 		if(this._status == Pathfinding.FOUND)
 		{
 			var path = this._currentAlgorithmFn.path;
@@ -103,7 +103,7 @@ Pathfinding.prototype.fnTick = function()
 	return { status:this._status };
 }
 
-Pathfinding.prototype.neighbors = function(p, graph)
+Pathfinding.neighbors = function(p, graph)
 {
 	var n = [];
 	
